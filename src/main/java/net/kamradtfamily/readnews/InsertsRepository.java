@@ -23,12 +23,12 @@
  */
 package net.kamradtfamily.readnews;
 
-import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 /**
  *
  * @author randalkamradt
  */
-@Repository
-public interface InsertsReactiveRepository extends ReactiveMongoRepository<Inserts, String> { }
+public interface InsertsRepository  extends MongoRepository<Inserts, String> {
+
+}

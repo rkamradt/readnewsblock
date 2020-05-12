@@ -24,12 +24,13 @@
 package net.kamradtfamily.readnews;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
 
 /**
  *
@@ -41,22 +42,24 @@ import reactor.core.publisher.Flux;
 public class ReadHeadlinesControllerV1 {
     private static final int MAX_LIMIT = 1000;
     
-    private final InsertsReactiveRepository newsReactiveRepository;
+    private final InsertsRepository newsRepository;
     
-    ReadHeadlinesControllerV1(final InsertsReactiveRepository newsReactiveRepository) {
-        this.newsReactiveRepository = newsReactiveRepository;
+    ReadHeadlinesControllerV1(final InsertsRepository newsReactiveRepository) {
+        this.newsRepository = newsReactiveRepository;
     }
     
-    @GetMapping(path="", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    Flux<Inserts.Articles> getFromMongo(final Instant from, final Instant to, final Long limit) {
+    @GetMapping(path="", produces = MediaType.APPLICATION_JSON_VALUE)
+    List<Inserts.Articles> getFromMongo(final Instant from, final Instant to, final Long limit) {
         long actualLimit = limit == null || limit == 0 || limit > MAX_LIMIT 
                 ? MAX_LIMIT
                 : limit;
-        return newsReactiveRepository
+        return newsRepository
                 .findAll()
-                .flatMap(r -> Flux.fromIterable(r.getArticles()))
+                .stream()
+                .flatMap(r -> r.getArticles().stream())
                 .filter(r -> filterByDate(r, from, to))
-                .limitRequest(actualLimit);
+                .limit(actualLimit)
+                .collect(Collectors.toList());
     }
 
     private boolean filterByDate(final Inserts.Articles record, final Instant from, Instant to) {
