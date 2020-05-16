@@ -53,12 +53,14 @@ public class ReadHeadlinesControllerV1 {
         long actualLimit = limit == null || limit == 0 || limit > MAX_LIMIT 
                 ? MAX_LIMIT
                 : limit;
+        log.info("returning news with " + actualLimit);
         return newsRepository
                 .findAll()
                 .stream()
                 .flatMap(r -> r.getArticles().stream())
                 .filter(r -> filterByDate(r, from, to))
                 .limit(actualLimit)
+                .onClose(() -> log.info("returned news with limit " + actualLimit))
                 .collect(Collectors.toList());
     }
 
